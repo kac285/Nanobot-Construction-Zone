@@ -1,0 +1,1871 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Nanobot Construction Zone</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        body {
+            /* A slightly more 'tech' sans-serif font stack */
+            font-family: 'Segoe UI', 'Roboto', system-ui, -apple-system, sans-serif;
+        }
+    
+        h1 {
+            /* Add a glow to the main title */
+            text-shadow: 0 0 15px rgba(45, 212, 191, 0.5);
+        }
+    
+        .nav-button {
+            transition: all 0.3s ease;
+            border: 1px solid #374151; /* gray-700 */
+        }
+        .nav-button:hover {
+            transform: translateY(-2px);
+            border-color: #22d3ee; /* cyan-400 */
+        }
+
+        .content-zone {
+            animation: fadeIn 0.5s ease;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* This class isn't used in the HTML, but I'll update it just in case */
+        .process-step {
+            transition: all 0.3s ease;
+        }
+        .process-step:hover {
+            transform: translateY(-5px);
+            /* Cyan glow */
+            box-shadow: 0 0 15px 5px rgba(34, 211, 238, 0.3);
+        }
+        
+        #dna-origami-canvas {
+            /* Brighter cyan border */
+            border: 1px solid #06b6d4; /* cyan-500 */
+            border-radius: 0.5rem;
+        }
+        
+        .env-tab-button {
+            transition: all 0.2s ease;
+        }
+        .env-tab-active {
+            /* Active tab is bright cyan with black text */
+            background-color: #22d3ee; /* cyan-400 */
+            color: #0c0a09; /* stone-950 */
+            font-weight: 600;
+        }
+        #env-sim-canvas {
+            border-radius: 0.5rem;
+            border: 1px solid #374151; /* gray-700 */
+        }
+        
+        /* More "tech" cursors */
+        #assembler-canvas {
+            cursor: crosshair; /* Precision cursor */
+        }
+        #molecular-sim-canvas {
+            cursor: move; /* 'move' is often clearer than 'grab' */
+        }
+        #molecular-sim-canvas:active {
+            cursor: grabbing;
+        }
+
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-200 font-sans leading-relaxed">
+    <div class="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
+        <header class="text-center mb-12">
+            <h1 class="text-4xl sm:text-5xl font-bold text-cyan-400 mb-4">Nanobot Construction Zone</h1>
+            <p class="text-lg text-gray-400 max-w-3xl mx-auto">An interactive explorer for nanoscale engineering and its applications.</p>
+        </header>
+
+        <section class="mb-12 bg-gray-800 p-6 rounded-lg shadow-lg shadow-cyan-900/50 border border-gray-700">
+            <h2 class="text-2xl font-semibold text-white mb-3">Welcome to the Zone</h2>
+            <p class="text-gray-300">This interactive application translates the complex concepts of nanotechnology into explorable simulations and data visualizations. Navigate through the different "zones" below to see how nanobots are virtually assembled, constructed atom by atom, and applied in medicine, manufacturing, and environmental remediation. Each section provides hands-on controls and dynamic data to bring the nanoscale world to life.</p>
+        </section>
+
+        <nav class="flex flex-wrap justify-center gap-3 sm:gap-4 mb-12" id="nav-tabs">
+            <button class="nav-button px-4 py-2 sm:px-6 sm:py-3 rounded-lg font-medium text-gray-200 bg-gray-700 shadow-md hover:bg-gray-600 hover:text-cyan-400" data-target="zone1">1. Two Paths to Creation</button>
+            <button class="nav-button px-4 py-2 sm:px-6 sm:py-3 rounded-lg font-medium text-gray-200 bg-gray-700 shadow-md hover:bg-gray-600 hover:text-cyan-400" data-target="zone2">2. 3D Molecular Simulator</button>
+            <button class="nav-button px-4 py-2 sm:px-6 sm:py-3 rounded-lg font-medium text-gray-200 bg-gray-700 shadow-md hover:bg-gray-600 hover:text-cyan-400" data-target="zone3">3. Medical Applications</button>
+            <button class="nav-button px-4 py-2 sm:px-6 sm:py-3 rounded-lg font-medium text-gray-200 bg-gray-700 shadow-md hover:bg-gray-600 hover:text-cyan-400" data-target="zone4">4. DNA Origami</button>
+            <button class="nav-button px-4 py-2 sm:px-6 sm:py-3 rounded-lg font-medium text-gray-200 bg-gray-700 shadow-md hover:bg-gray-600 hover:text-cyan-400" data-target="zone5">5. Environmental</button>
+        </nav>
+
+        <main id="content-container">
+            
+            <div id="zone1" class="content-zone bg-gray-800 p-6 rounded-lg shadow-xl shadow-blue-950/50 border border-gray-700">
+                <h2 class="text-3xl font-semibold text-cyan-400 mb-4">1. The Two Paths to Creation</h2>
+                <p class="text-gray-400 mb-6">A dual-simulation game. Side 1 (Mechanosynthesis) is precise but slow. Side 2 (Self-Assembly) is fast and parallel. Try both to see the two fundamental approaches to nanoconstruction.</p>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    
+                    <div class="flex flex-col">
+                        <h3 class="text-xl font-semibold text-white text-center mb-2">Side 1: Mechanosynthesis (The Assembler)</h3>
+                        <p class="text-sm text-gray-400 text-center mb-4">Click and drag the 'Nanobot Arm' (blue dot) to pick up atoms from the 'Supply' (left) and drop them onto the 'Blueprint' (right). It's precise, but one-by-one.</p>
+                        <div class="bg-gray-900 rounded-lg p-2 h-80 min-h-[320px] mb-4">
+                            <canvas id="assembler-canvas" class="w-full h-full rounded"></canvas>
+                        </div>
+                        <h3 class="text-xl font-semibold text-white">Assembler Log</h3>
+                        <div id="assembler-log" class="bg-black p-3 rounded-lg h-40 overflow-y-auto text-sm text-green-400 font-mono">
+                            [System Ready] Move the arm to pick up and place atoms.
+                        </div>
+                    </div>
+                    
+                    <div class="flex flex-col">
+                        <h3 class="text-xl font-semibold text-white text-center mb-2">Side 2: Self-Assembly (The Folder)</h3>
+                        <p class="text-sm text-gray-400 text-center mb-4">Control the thermal energy (Heat). At high heat, the structure "denatures." As you "cool" it (lower the heat), the "programmed" staples (red) will find their targets on the scaffold (blue) and spontaneously fold it into a fixed shape.</p>
+                        <div class="bg-gray-900 rounded-lg p-2 h-80 min-h-[320px] mb-4">
+                            <canvas id="self-assembly-canvas" class="w-full h-full rounded"></canvas>
+                        </div>
+                        <div class="flex gap-4 mb-4">
+                            <div class="w-full flex flex-col items-center">
+                                <label for="heat-slider" class="text-sm font-medium text-gray-300">Heat (Thermal Energy)</label>
+                                <input id="heat-slider" type="range" min="0" max="100" value="100" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer">
+                            </div>
+                            <button id="reset-assembly-btn" class="w-1/2 bg-gray-600 hover:bg-gray-500 text-gray-100 font-medium p-3 rounded-lg transition">Reset</button>
+                        </div>
+                        <h3 class="text-xl font-semibold text-white">Self-Assembly Log</h3>
+                        <div id="self-assembly-log" class="bg-black p-3 rounded-lg h-40 overflow-y-auto text-sm text-green-400 font-mono">
+                            [System Ready] Programmed components in solution.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="zone2" class="content-zone bg-gray-800 p-6 rounded-lg shadow-xl shadow-blue-950/50 border border-gray-700 hidden">
+                <h2 class="text-3xl font-semibold text-cyan-400 mb-4">2. 3D Molecular Construction Simulator</h2>
+                <p class="text-gray-400 mb-6">Click and drag inside the 3D view to rotate the fullerene. Press Start to watch a nanobot place atoms one-by-one to form a C60-like fullerene. This version computes 60 well-distributed points on a sphere and connects nearest neighbors to form a realistic C60-like network that simulates in true 3D.</p>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div>
+                        <div class="bg-gray-900 rounded-lg p-4 h-80 min-h-[320px] mb-4">
+                            <canvas id="molecular-sim-canvas" class="w-full h-full rounded"></canvas>
+                        </div>
+                        <div class="flex gap-4">
+                            <button id="mol-sim-start" class="w-full bg-cyan-600 hover:bg-cyan-500 text-black font-semibold p-3 rounded transition">Start Assembly Sequence (C60)</button>
+                            <button id="mol-sim-reset" class="w-full bg-gray-600 hover:bg-gray-500 text-gray-100 p-3 rounded transition">Reset Simulation</button>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-semibold text-white mb-2">Assembly Log</h3>
+                        <div id="mol-sim-log" class="bg-black p-3 rounded h-96 overflow-y-auto font-mono text-sm text-green-400">[System Ready] Press 'Start' to build Fullerene (C60-like).</div>
+                    </div>
+                </div>
+            </div>
+            <div id="zone3" class="content-zone bg-gray-800 p-6 rounded-lg shadow-xl shadow-blue-950/50 border border-gray-700 hidden">
+                <h2 class="text-3xl font-semibold text-cyan-400 mb-4">3. Medical Nanobot Demonstration</h2>
+                <p class="text-gray-400 mb-6">Explore how medical nanobots perform targeted drug delivery. The simulation shows a "virtual video" of nanobots in the bloodstream, ignoring healthy cells to find and bind to a tumor. The chart compares the efficacy of this method.</p>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <div>
+                        <h3 class="text-xl font-semibold text-white mb-4 text-center">Simulation: Targeted Drug Delivery</h3>
+                        <div class="flex flex-col">
+                            <div class="bg-gray-900 rounded-lg p-2 h-96 min-h-[400px] mb-4">
+                                <canvas id="medical-sim-canvas" class="w-full h-full rounded"></canvas>
+                            </div>
+                            <div class="flex gap-4 mb-4">
+                                <button id="medical-sim-start" class="w-full bg-cyan-600 hover:bg-cyan-500 text-black font-semibold p-3 rounded-lg transition">Start Delivery Sequence</button>
+                                <button id="medical-sim-reset" class="w-full bg-gray-600 hover:bg-gray-500 text-gray-100 p-3 rounded-lg transition">Reset Simulation</button>
+                            </div>
+                            <h3 class="text-xl font-semibold text-white">Simulation Log</h3>
+                            <div id="medical-sim-log" class="bg-black p-3 rounded-lg h-24 overflow-y-auto text-sm text-green-400 font-mono">
+                                [System Ready] Press 'Start' to inject nanobot swarm.
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex flex-col items-center">
+                        <h3 class="text-xl font-semibold text-white mb-4 text-center">Efficacy Comparison: Drug at Target</h3>
+                        <div style="position: relative; height:350px; max-height:400px; width:100%; max-width:500px; margin: auto;">
+                            <canvas id="medical-chart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="zone4" class="content-zone bg-gray-800 p-6 rounded-lg shadow-xl shadow-blue-950/50 border border-gray-700 hidden">
+                <h2 class="text-3xl font-semibold text-cyan-400 mb-4">4. DNA Origami: The Programmable Scaffold</h2>
+                <p class="text-gray-400 mb-6">DNA origami is a revolutionary technique that uses the principles of self-assembly to build precise nanostructures. This simulation demonstrates the folding process and the "addressability" of the final structure.</p>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <div>
+                        <h3 class="text-xl font-semibold text-white mb-3">The Technique: Programmable Self-Assembly</h3>
+                        <div class="space-y-4 text-gray-300">
+                            <p>Pioneered by Paul Rothemund, DNA origami folds a long, single "scaffold" strand of DNA into an arbitrary shape. This folding is directed by hundreds of short, synthetic "staple" strands.</p>
+                            <p>The entire process is a remarkable feat of self-assembly. By mixing the scaffold and staples in a solution and then heating and cooling it, trillions of identical nanostructures form spontaneously and in parallel.</p>
+                            <ul class="list-disc list-inside space-y-1">
+                                <li><strong>Scaffold:</strong> A long, single strand of DNA (often from a virus).</li>
+                                <li><strong>Staples:</strong> Short, custom DNA strands that bind to specific parts of the scaffold, "stapling" it into place.</li>
+                                <li><strong>Addressability:</strong> Each staple acts as an "addressable pixel," allowing functional molecules (like proteins or nanoparticles) to be attached with nanometer precision.</li>
+                            </ul>
+                        </div>
+                        <div id="payload-controls" class="hidden mt-4">
+                            <h3 class="text-xl font-semibold text-white mb-3">Payload Attachment</h3>
+                            <p class="text-gray-300 mb-3">The scaffold is folded. Now, attach functional payloads to the pre-programmed "addressable" locations.</p>
+                            <div class="space-y-2">
+                                <button id="attach-payload-1" class="w-full text-left bg-yellow-700 hover:bg-yellow-600 text-yellow-100 font-medium p-3 rounded-lg transition">Attach Gold Nanoparticle (Wheel 1)</button>
+                                <button id="attach-payload-2" class="w-full text-left bg-yellow-700 hover:bg-yellow-600 text-yellow-100 font-medium p-3 rounded-lg transition">Attach Gold Nanoparticle (Wheel 2)</button>
+                                <button id="attach-payload-3" class="w-full text-left bg-green-700 hover:bg-green-600 text-green-100 font-medium p-3 rounded-lg transition">Attach Cargo: Protein (Truck Bed)</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex flex-col">
+                        <h3 class="text-xl font-semibold text-white text-center">Simulation: Self-Assembly of a "2D Car"</h3>
+                        <div class="bg-gray-900 rounded-lg w-full h-80 min-h-[320px] mb-4">
+                            <canvas id="dna-origami-canvas" class="w-full h-full"></canvas>
+                        </div>
+                        <div class="flex gap-4 mb-4">
+                            <button id="dna-sim-start" class="w-full bg-cyan-600 hover:bg-cyan-500 text-black font-semibold p-3 rounded-lg transition">Start Self-Assembly</button>
+                            <button id="dna-sim-reset" class="w-full bg-gray-600 hover:bg-gray-500 text-gray-100 p-3 rounded-lg transition">Reset Simulation</button>
+                        </div>
+                        <h3 class="text-xl font-semibold text-white">Assembly Log</h3>
+                        <div id="dna-sim-log" class="bg-black p-3 rounded-lg h-40 overflow-y-auto text-sm text-green-400 font-mono">
+                            [System Ready] Press 'Start' to begin the folding process.
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="zone5" class="content-zone bg-gray-800 p-6 rounded-lg shadow-xl shadow-blue-950/50 border border-gray-700 hidden">
+                <h2 class="text-3xl font-semibold text-cyan-400 mb-4">5. Environmental Remediation</h2>
+                <p class="text-gray-400 mb-6">Nanorobots offer powerful new tools for environmental cleanup. Select a scenario below to see a simulation of how they neutralize specific contaminants at the molecular level.</p>
+                
+                <nav class="flex justify-center gap-2 mb-6 border-b border-gray-700">
+                    <button class="env-tab-button -mb-px px-4 py-3 rounded-t-lg font-medium text-gray-300 bg-gray-800 hover:bg-gray-700" data-scenario="water">
+                        Water Purification
+                    </button>
+                    <button class="env-tab-button -mb-px px-4 py-3 rounded-t-lg font-medium text-gray-300 bg-gray-800 hover:bg-gray-700" data-scenario="soil">
+                        Soil Decontamination
+                    </button>
+                    <button class="env-tab-button -mb-px px-4 py-3 rounded-t-lg font-medium text-gray-300 bg-gray-800 hover:bg-gray-700" data-scenario="air">
+                        Air Pollution Control
+                    </button>
+                </nav>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <div class="flex flex-col">
+                        <h3 id="env-sim-title" class="text-xl font-semibold text-white text-center mb-4">Simulation: Water Purification</h3>
+                        <div class="w-full h-80 min-h-[320px] mb-4">
+                            <canvas id="env-sim-canvas" class="w-full h-full"></canvas>
+                        </div>
+                        <div id="env-sim-controls" class="flex gap-4 mb-4">
+                            <button id="env-sim-btn-water" class="w-full bg-cyan-600 hover:bg-cyan-500 text-black font-semibold p-3 rounded-lg transition">Inject nZVI Nanoparticles</button>
+                            <button id="env-sim-btn-soil" class="w-full bg-cyan-600 hover:bg-cyan-500 text-black font-semibold p-3 rounded-lg transition hidden">Inject Nanoparticles</button>
+                            <button id="env-sim-btn-air" class="w-full bg-cyan-600 hover:bg-cyan-500 text-black font-semibold p-3 rounded-lg transition hidden">Activate UV Light</button>
+                            <button id="env-sim-reset" class="w-full bg-gray-600 hover:bg-gray-500 text-gray-100 p-3 rounded-lg transition">Reset Simulation</button>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-semibold text-white mb-4">Strategy & Details</h3>
+                        <div id="env-details" class="bg-gray-900 p-4 rounded-lg min-h-[150px] text-gray-300 space-y-3 mb-6">
+                            </div>
+                        <h3 class="text-xl font-semibold text-white mb-4 text-center">Contaminant Analysis</h3>
+                        <div style="position: relative; height:250px; max-height:300px; width:100%; max-width:350px; margin: auto;">
+                            <canvas id="env-chart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+        </main>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const tabs = document.querySelectorAll('.nav-button');
+            const zones = document.querySelectorAll('.content-zone');
+            
+            let medicalChart, envChart;
+            let zone1Initialized = false, zone2Initialized = false, zone3Initialized = false, zone4Initialized = false, zone5Initialized = false;
+
+            const chartLabelWrapper = (value) => {
+                const max = 16;
+                if (typeof value === 'string' && value.length > max) {
+                    let lines = [];
+                    let str = value;
+                    while (str.length > 0) {
+                        let i = str.substring(0, max).lastIndexOf(' ');
+                        if (i === -1 || str.length <= max) i = max;
+                        lines.push(str.substring(0, i));
+                        str = str.substring(i).trim();
+                    }
+                    return lines;
+                }
+                return value;
+            };
+            
+            // --- Global Chart Options for Dark Mode ---
+            const globalChartOptions = {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        labels: {
+                            font: { size: 14, family: 'sans-serif' },
+                            color: '#d1d5db' // gray-300
+                        }
+                    },
+                    tooltip: {
+                        enabled: true,
+                        bodyFont: { size: 14, family: 'sans-serif' },
+                        titleFont: { size: 16, family: 'sans-serif', weight: 'bold' }
+                    }
+                },
+                scales: {
+                    x: {
+                        ticks: {
+                            callback: chartLabelWrapper,
+                            font: { size: 12, family: 'sans-serif' },
+                            color: '#d1d5db' // gray-300
+                        },
+                        grid: { display: false }
+                    },
+                    y: {
+                        ticks: {
+                            font: { size: 12, family: 'sans-serif' },
+                            color: '#d1d5db' // gray-300
+                        },
+                        grid: { color: '#374151' } // gray-700
+                    }
+                }
+            };
+            
+            function initTabNavigation() {
+                tabs.forEach(tab => {
+                    tab.addEventListener('click', () => {
+                        const target = tab.getAttribute('data-target');
+                        
+                        // --- UPDATED CLASSES ---
+                        // Remove active state from all tabs
+                        tabs.forEach(t => t.classList.remove('bg-cyan-400', 'text-black', 'font-bold', 'shadow-lg', 'shadow-cyan-500/30'));
+                        // Add active state to the clicked tab
+                        tab.classList.add('bg-cyan-400', 'text-black', 'font-bold', 'shadow-lg', 'shadow-cyan-500/30');
+                        
+                        zones.forEach(zone => {
+                            if (zone.id === target) {
+                                zone.classList.remove('hidden');
+                            } else {
+                                zone.classList.add('hidden');
+                            }
+                        });
+                        
+                        if (target === 'zone1' && !zone1Initialized) {
+                            initZone1Sim();
+                            zone1Initialized = true;
+                        }
+                        if (target === 'zone2' && !zone2Initialized) {
+                            initZone2Sim();
+                            zone2Initialized = true;
+                        }
+                        if (target === 'zone3') {
+                            if (!zone3Initialized) {
+                                initZone3Sim();
+                                zone3Initialized = true;
+                            }
+                            if (!medicalChart) initZone3Chart();
+                        }
+                        if (target === 'zone4' && !zone4Initialized) {
+                             initZone4Sim();
+                             zone4Initialized = true;
+                        }
+                        if (target === 'zone5' && !zone5Initialized) { 
+                            initZone5();
+                            zone5Initialized = true;
+                        }
+                    });
+                });
+            }
+
+            // --- ZONE 1: TWO PATHS SIM (MODIFIED) ---
+            function initZone1Sim() {
+                let animationFrameId1 = null;
+                let animationFrameId2 = null;
+                
+                function getMousePos(canvas, evt) {
+                    const rect = canvas.getBoundingClientRect();
+                    return {
+                        x: evt.clientX - rect.left,
+                        y: evt.clientY - rect.top
+                    };
+                }
+                
+                function distSq(p1, p2) {
+                    return (p1.x - p2.x) ** 2 + (p1.y - p2.y) ** 2;
+                }
+
+                // --- Side 1: Assembler ---
+                const canvas1 = document.getElementById('assembler-canvas');
+                const log1 = document.getElementById('assembler-log');
+                if (!canvas1) return;
+                const ctx1 = canvas1.getContext('2d');
+                let nanobotArm = { x: 40, y: 160, radius: 8, color: 'rgba(96, 165, 250, 1)', cargo: null };
+                let isDragging = false;
+                let atomSupply = [];
+                let blueprint = [];
+                
+                function log1Message(msg) {
+                    log1.innerHTML = `[${new Date().toLocaleTimeString()}] ${msg}<br>` + log1.innerHTML;
+                    log1.scrollTop = 0;
+                }
+                
+                function resizeAssembler() {
+                    canvas1.width = canvas1.parentElement.clientWidth;
+                    canvas1.height = canvas1.parentElement.clientHeight;
+                    const cX = canvas1.width * 0.7;
+                    const cY = canvas1.height / 2;
+                    const supplyX = canvas1.width * 0.15;
+                    atomSupply = [
+                        { x: supplyX, y: cY - 60, radius: 6, color: 'rgba(239, 68, 68, 0.8)', id: 'a1', isAvailable: true },
+                        { x: supplyX, y: cY - 20, radius: 6, color: 'rgba(239, 68, 68, 0.8)', id: 'a2', isAvailable: true },
+                        { x: supplyX, y: cY + 20, radius: 6, color: 'rgba(239, 68, 68, 0.8)', id: 'a3', isAvailable: true },
+                        { x: supplyX, y: cY + 60, radius: 6, color: 'rgba(239, 68, 68, 0.8)', id: 'a4', isAvailable: true }
+                    ];
+                    blueprint = [
+                        { x: cX - 20, y: cY - 20, radius: 6, color: 'rgba(107, 114, 128, 0.5)', placed: false, id: 'a1' },
+                        { x: cX + 20, y: cY - 20, radius: 6, color: 'rgba(107, 114, 128, 0.5)', placed: false, id: 'a2' },
+                        { x: cX - 20, y: cY + 20, radius: 6, color: 'rgba(107, 114, 128, 0.5)', placed: false, id: 'a3' },
+                        { x: cX + 20, y: cY + 20, radius: 6, color: 'rgba(107, 114, 128, 0.5)', placed: false, id: 'a4' }
+                    ];
+                    nanobotArm.cargo = null;
+                    log1Message("System reset. Drag the arm to build.");
+                }
+
+                canvas1.addEventListener('mousedown', (e) => {
+                    const pos = getMousePos(canvas1, e);
+                    if (distSq(pos, nanobotArm) < (nanobotArm.radius + 10) ** 2) {
+                        isDragging = true;
+                        canvas1.style.cursor = 'grabbing';
+                    }
+                });
+                
+                canvas1.addEventListener('mousemove', (e) => {
+                    const pos = getMousePos(canvas1, e);
+                    if (isDragging) {
+                        nanobotArm.x = pos.x;
+                        nanobotArm.y = pos.y;
+                    } else {
+                         if (distSq(pos, nanobotArm) < (nanobotArm.radius + 10) ** 2) {
+                             canvas1.style.cursor = 'grab';
+                         } else {
+                             canvas1.style.cursor = 'crosshair';
+                         }
+                    }
+                });
+                
+                canvas1.addEventListener('mouseup', (e) => {
+                    isDragging = false;
+                    canvas1.style.cursor = 'crosshair';
+                    if (nanobotArm.cargo === null) {
+                        atomSupply.forEach(atom => {
+                            if (atom.isAvailable && distSq(nanobotArm, atom) < (nanobotArm.radius + atom.radius) ** 2) {
+                                nanobotArm.cargo = atom;
+                                atom.isAvailable = false;
+                                log1Message(`Picked up Atom ${atom.id}.`);
+                            }
+                        });
+                    } else {
+                        blueprint.forEach(slot => {
+                            if (!slot.placed && slot.id === nanobotArm.cargo.id && distSq(nanobotArm, slot) < (nanobotArm.radius + slot.radius) ** 2) {
+                                slot.placed = true;
+                                log1Message(`Placed Atom ${slot.id}.`);
+                                nanobotArm.cargo = null;
+                            }
+                        });
+                    }
+                    if (blueprint.every(s => s.placed)) {
+                         log1Message("Structure Complete! (Slow process)");
+                    }
+                });
+                
+                canvas1.addEventListener('mouseout', () => { isDragging = false; canvas1.style.cursor = 'crosshair'; });
+
+                function drawAssembler() {
+                    ctx1.clearRect(0, 0, canvas1.width, canvas1.height);
+                    ctx1.font = "12px sans-serif";
+                    ctx1.fillStyle = "#9ca3af"; // gray-400
+                    ctx1.textAlign = "center";
+                    ctx1.fillText("Supply Bay", canvas1.width * 0.15, 20);
+                    ctx1.fillText("Blueprint", canvas1.width * 0.7, 20);
+
+                    atomSupply.forEach(atom => {
+                        if (atom.isAvailable) {
+                            ctx1.beginPath();
+                            ctx1.arc(atom.x, atom.y, atom.radius, 0, Math.PI * 2);
+                            ctx1.fillStyle = atom.color;
+                            ctx1.fill();
+                        }
+                    });
+                    blueprint.forEach(slot => {
+                        ctx1.beginPath();
+                        ctx1.arc(slot.x, slot.y, slot.radius, 0, Math.PI * 2);
+                        ctx1.fillStyle = slot.placed ? 'rgba(239, 68, 68, 0.8)' : slot.color;
+                        ctx1.fill();
+                        if (!slot.placed) {
+                            ctx1.strokeStyle = "#6b7280"; // gray-500
+                            ctx1.setLineDash([2, 2]);
+                            ctx1.stroke();
+                            ctx1.setLineDash([]);
+                        }
+                    });
+                    
+                    ctx1.beginPath();
+                    ctx1.arc(nanobotArm.x, nanobotArm.y, nanobotArm.radius, 0, Math.PI * 2);
+                    ctx1.fillStyle = nanobotArm.color;
+                    ctx1.fill();
+                    if (nanobotArm.cargo) {
+                        ctx1.beginPath();
+                        ctx1.arc(nanobotArm.x + 10, nanobotArm.y, nanobotArm.cargo.radius, 0, Math.PI * 2);
+                        ctx1.fillStyle = nanobotArm.cargo.color;
+                        ctx1.fill();
+                    }
+                    
+                    animationFrameId1 = requestAnimationFrame(drawAssembler);
+                }
+
+                // --- Side 2: Self-Assembly (NEW PROGRAMMABLE FOLDING SIM) ---
+                const canvas2 = document.getElementById('self-assembly-canvas');
+                const log2 = document.getElementById('self-assembly-log');
+                if (!canvas2) return;
+                const ctx2 = canvas2.getContext('2d');
+                const heatSlider = document.getElementById('heat-slider');
+                const resetAssemblyBtn = document.getElementById('reset-assembly-btn');
+                
+                let scaffoldParticles = [];
+                let stapleParticles = [];
+                let lastHeat = 100;
+                
+                // Physics constants
+                const STAPLE_ATTRACTION = 0.1;
+                const STAPLE_REPULSION = 2.0;
+                const SCAFFOLD_REPULSION = 0.5;
+                const SPRING_STIFFNESS = 0.1;
+                const SPRING_REST_LENGTH = 10;
+                const HEAT_STRENGTH = 5.0;
+                const DAMPING = 0.9;
+
+                function log2Message(msg) {
+                    log2.innerHTML = `[${new Date().toLocaleTimeString()}] ${msg}<br>` + log2.innerHTML;
+                    log2.scrollTop = 0;
+                }
+                
+                function resizeSelfAssembly() {
+                    canvas2.width = canvas2.parentElement.clientWidth;
+                    canvas2.height = canvas2.parentElement.clientHeight;
+                    resetSelfAssembly();
+                }
+
+                function resetSelfAssembly() {
+                    scaffoldParticles = [];
+                    stapleParticles = [];
+                    
+                    const scaffoldLength = 40;
+                    const cX = canvas2.width / 2;
+                    const cY = canvas2.height / 2;
+                    
+                    // Create scaffold chain in a random line
+                    for (let i = 0; i < scaffoldLength; i++) {
+                        scaffoldParticles.push({
+                            x: cX + (Math.random() - 0.5) * 200,
+                            y: cY + (Math.random() - 0.5) * 200,
+                            vx: 0, vy: 0, radius: 4,
+                            color: 'rgba(96, 165, 250, 0.9)' // Blue
+                        });
+                    }
+                    
+                    // Create staples "programmed" to fold chain into a square
+                    // They will attach at points 5, 15, 25, 35
+                    stapleParticles.push({
+                        x: Math.random() * canvas2.width, y: Math.random() * canvas2.height,
+                        vx: 0, vy: 0, radius: 6,
+                        color: 'rgba(239, 68, 68, 0.9)', // Red
+                        targetIndex: 5
+                    });
+                    stapleParticles.push({
+                        x: Math.random() * canvas2.width, y: Math.random() * canvas2.height,
+                        vx: 0, vy: 0, radius: 6,
+                        color: 'rgba(239, 68, 68, 0.9)', // Red
+                        targetIndex: 15
+                    });
+                    stapleParticles.push({
+                        x: Math.random() * canvas2.width, y: Math.random() * canvas2.height,
+                        vx: 0, vy: 0, radius: 6,
+                        color: 'rgba(239, 68, 68, 0.9)', // Red
+                        targetIndex: 25
+                    });
+                    stapleParticles.push({
+                        x: Math.random() * canvas2.width, y: Math.random() * canvas2.height,
+                        vx: 0, vy: 0, radius: 6,
+                        color: 'rgba(239, 68, 68, 0.9)', // Red
+                        targetIndex: 35
+                    });
+                    
+                    log2Message(`Reset. Scaffold (blue) and staples (red) in solution.`);
+                    heatSlider.value = 100;
+                    lastHeat = 100;
+                }
+                
+                heatSlider.addEventListener('input', () => {
+                    const heat = parseInt(heatSlider.value);
+                    if (heat > 80 && lastHeat <= 80) {
+                        log2Message("High heat! Structure denaturing...");
+                    } else if (heat < 20 && lastHeat >= 20) {
+                        log2Message("Cooling... Programmatic forces dominant.");
+                    }
+                    lastHeat = heat;
+                });
+                
+                resetAssemblyBtn.addEventListener('click', resetSelfAssembly);
+                
+                function applyForces(particle, currentHeat) {
+                    let forceX = 0;
+                    let forceY = 0;
+                    
+                    // 1. Thermodynamic Force (Heat)
+                    forceX += (Math.random() - 0.5) * currentHeat * HEAT_STRENGTH;
+                    forceY += (Math.random() - 0.5) * currentHeat * HEAT_STRENGTH;
+                    
+                    particle.vx += forceX;
+                    particle.vy += forceY;
+                    
+                    // 2. Damping
+                    particle.vx *= DAMPING;
+                    particle.vy *= DAMPING;
+                    
+                    // 3. Update Position
+                    particle.x += particle.vx;
+                    particle.y += particle.vy;
+                    
+                    // 4. Wall Bouncing
+                    if (particle.x < particle.radius) { particle.x = particle.radius; particle.vx *= -0.5; }
+                    if (particle.x > canvas2.width - particle.radius) { particle.x = canvas2.width - particle.radius; particle.vx *= -0.5; }
+                    if (particle.y < particle.radius) { particle.y = particle.radius; particle.vy *= -0.5; }
+                    if (particle.y > canvas2.height - particle.radius) { particle.y = canvas2.height - particle.radius; particle.vy *= -0.5; }
+                }
+
+                function drawSelfAssembly() {
+                    ctx2.clearRect(0, 0, canvas2.width, canvas2.height);
+                    const currentHeat = heatSlider.value / 100.0; // 0.0 to 1.0
+
+                    // --- 1. Calculate Forces ---
+                    
+                    // Staple forces
+                    stapleParticles.forEach((p, i) => {
+                        let forceX = 0, forceY = 0;
+                        
+                        // Attraction to target
+                        const target = scaffoldParticles[p.targetIndex];
+                        const dx = target.x - p.x;
+                        const dy = target.y - p.y;
+                        forceX += dx * STAPLE_ATTRACTION;
+                        forceY += dy * STAPLE_ATTRACTION;
+                        
+                        // Repulsion from other staples
+                        for (let j = 0; j < stapleParticles.length; j++) {
+                            if (i === j) continue;
+                            const other = stapleParticles[j];
+                            const dxS = other.x - p.x;
+                            const dyS = other.y - p.y;
+                            let distSq = dxS * dxS + dyS * dyS;
+                            if (distSq < 1) distSq = 1;
+                            const dist = Math.sqrt(distSq);
+                            if (dist < 50) { // Repel range
+                                forceX -= (dxS / dist) * STAPLE_REPULSION / dist;
+                                forceY -= (dyS / dist) * STAPLE_REPULSION / dist;
+                            }
+                        }
+                        
+                        p.vx += forceX;
+                        p.vy += forceY;
+                    });
+                    
+                    // Scaffold forces
+                    scaffoldParticles.forEach((p, i) => {
+                        let forceX = 0, forceY = 0;
+                        
+                        // Spring forces (to neighbors)
+                        [i - 1, i + 1].forEach(neighborIndex => {
+                            if (neighborIndex >= 0 && neighborIndex < scaffoldParticles.length) {
+                                const neighbor = scaffoldParticles[neighborIndex];
+                                const dx = neighbor.x - p.x;
+                                const dy = neighbor.y - p.y;
+                                const dist = Math.sqrt(dx * dx + dy * dy);
+                                const displacement = dist - SPRING_REST_LENGTH;
+                                const springForce = SPRING_STIFFNESS * displacement;
+                                forceX += (dx / (dist + 0.1)) * springForce; // Add 0.1 to prevent div by zero
+                                forceY += (dy / (dist + 0.1)) * springForce;
+                            }
+                        });
+                        
+                        // Repulsion from other scaffold particles (to prevent self-clumping)
+                        for (let j = 0; j < scaffoldParticles.length; j++) {
+                            if (i === j || j === i - 1 || j === i + 1) continue;
+                            const other = scaffoldParticles[j];
+                            const dxR = other.x - p.x;
+                            const dyR = other.y - p.y;
+                            let distSq = dxR * dxR + dyR * dyR;
+                            if (distSq < 1) distSq = 1;
+                            const dist = Math.sqrt(distSq);
+                            if (dist < 20) {
+                                forceX -= (dxR / dist) * SCAFFOLD_REPULSION / dist;
+                                forceY -= (dyR / dist) * SCAFFOLD_REPULSION / dist;
+                            }
+                        }
+                        
+                        p.vx += forceX;
+                        p.vy += forceY;
+                    });
+                    
+                    // --- 2. Apply Forces & Draw ---
+                    
+                    // Apply to all particles
+                    [...scaffoldParticles, ...stapleParticles].forEach(p => {
+                        applyForces(p, currentHeat);
+                    });
+                    
+                    // Draw scaffold links
+                    ctx2.beginPath();
+                    ctx2.moveTo(scaffoldParticles[0].x, scaffoldParticles[0].y);
+                    for (let i = 1; i < scaffoldParticles.length; i++) {
+                        ctx2.lineTo(scaffoldParticles[i].x, scaffoldParticles[i].y);
+                    }
+                    ctx2.strokeStyle = "rgba(96, 165, 250, 0.4)"; // Faint blue
+                    ctx2.lineWidth = 2;
+                    ctx2.stroke();
+                    
+                    // Draw scaffold particles
+                    scaffoldParticles.forEach(p => {
+                        ctx2.beginPath();
+                        ctx2.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                        ctx2.fillStyle = p.color;
+                        ctx2.fill();
+                    });
+                    
+                    // Draw staple particles
+                    stapleParticles.forEach(p => {
+                        ctx2.beginPath();
+                        ctx2.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                        ctx2.fillStyle = p.color;
+                        ctx2.fill();
+                    });
+                    
+                    animationFrameId2 = requestAnimationFrame(drawSelfAssembly);
+                }
+
+
+                // --- Init Zone 1 ---
+                if (!canvas1 || !canvas2) return;
+                resizeAssembler();
+                resizeSelfAssembly();
+                
+                window.addEventListener('resize', () => {
+                    resizeAssembler();
+                    resizeSelfAssembly();
+                });
+                
+                drawAssembler();
+                drawSelfAssembly();
+            }
+ 
+            // --- ZONE 2: 3D MOLECULAR SIM (REPLACED + FIXED) ---
+            function initZone2Sim() {
+                // --- Zone 2 improved C60 simulation ---
+                const canvas = document.getElementById('molecular-sim-canvas');
+                const log = document.getElementById('mol-sim-log');
+                const startBtn = document.getElementById('mol-sim-start');
+                const resetBtn = document.getElementById('mol-sim-reset');
+
+                if (!canvas) return;
+
+                let scene, camera, renderer, nanobot, moleculeGroup;
+                let isDragging = false, isBuilding = false;
+                let prevMouse = {x:0,y:0};
+                let blueprint = { atoms: [], bonds: [] };
+                let currentStep = 0;
+                let animId = null;
+
+                function logMessage(msg) {
+                    if (!log) return;
+                    log.innerHTML = `[${new Date().toLocaleTimeString()}] ${msg}<br>` + log.innerHTML;
+                    log.scrollTop = 0;
+                }
+
+                // Create 60 well-distributed points on a sphere using Fibonacci lattice
+                function fibonacciSpherePoints(n, radius=10) {
+                    const pts = [];
+                    const golden = (1 + Math.sqrt(5)) / 2;
+                    for (let i = 0; i < n; i++) {
+                        const t = i + 0.5;
+                        const z = 1 - (2 * t) / n; // z goes from near 1 to -1
+                        const r = Math.sqrt(1 - z * z);
+                        const phi = 2 * Math.PI * t / golden;
+                        const x = Math.cos(phi) * r;
+                        const y = Math.sin(phi) * r;
+                        pts.push(new THREE.Vector3(x * radius, y * radius, z * radius));
+                    }
+                    return pts;
+                }
+
+                // Build bonds by connecting each point to its nearest k neighbors (k = 3)
+                function buildBondsFromPoints(points, k=3) {
+                    const bonds = [];
+                    for (let i = 0; i < points.length; i++) {
+                        // compute distances to others
+                        const dists = [];
+                        for (let j = 0; j < points.length; j++) {
+                            if (i === j) continue;
+                            dists.push({ idx: j, d: points[i].distanceToSquared(points[j]) });
+                        }
+                        dists.sort((a,b)=>a.d-b.d);
+                        for (let m = 0; m < k; m++) {
+                            const j = dists[m].idx;
+                            // canonical order
+                            const a = Math.min(i,j), b = Math.max(i,j);
+                            // avoid duplicates
+                            if (!bonds.some(bd => bd.from === a && bd.to === b)) {
+                                bonds.push({ from: a, to: b, mesh: null });
+                            }
+                        }
+                    }
+                    return bonds;
+                }
+
+                function createC60Blueprint(scale=10) {
+                    const atoms = [];
+                    const bonds = [];
+                    const points = fibonacciSpherePoints(60, scale);
+
+                    points.forEach(p => atoms.push({ pos: p.clone(), mesh: null }));
+
+                    const bondList = buildBondsFromPoints(points, 3); // connect to nearest 3 neighbors
+
+                    // Create bond meshes (cylinders) with proper orientation
+                    bondList.forEach(b => {
+                        const p1 = atoms[b.from].pos;
+                        const p2 = atoms[b.to].pos;
+                        const dist = p1.distanceTo(p2);
+                        const cylGeo = new THREE.CylinderGeometry(0.6, 0.6, dist, 8);
+                        const cylMat = new THREE.MeshLambertMaterial({ color: 0x4B5563 }); // gray-600
+                        const mesh = new THREE.Mesh(cylGeo, cylMat);
+                        mesh.position.copy(p1).lerp(p2, 0.5);
+                        // orient the cylinder to point from p1 to p2
+                        const up = new THREE.Vector3(0,1,0);
+                        const dir = new THREE.Vector3().subVectors(p2, p1).normalize();
+                        const quaternion = new THREE.Quaternion().setFromUnitVectors(up, dir);
+                        mesh.applyQuaternion(quaternion);
+                        mesh.visible = false; // only show after both atoms placed
+                        b.mesh = mesh;
+                    });
+
+                    return { atoms, bonds: bondList };
+                }
+
+                function resetSim() {
+                    isBuilding = false;
+                    currentStep = 0;
+                    if (nanobot) scene.remove(nanobot);
+                    if (moleculeGroup) scene.remove(moleculeGroup);
+
+                    nanobot = new THREE.Mesh(new THREE.SphereGeometry(1.6, 12, 12), new THREE.MeshPhongMaterial({ color: 0x22d3ee })); // cyan-400
+                    nanobot.position.set(30, 30, 30);
+                    nanobot.targetPos = null;
+                    scene.add(nanobot);
+
+                    moleculeGroup = new THREE.Group();
+                    scene.add(moleculeGroup);
+
+                    blueprint = createC60Blueprint(18);
+                    // create atom meshes and add to group (hidden initially)
+                    const atomGeo = new THREE.SphereGeometry(1.8, 12, 12);
+                    const atomMat = new THREE.MeshPhongMaterial({ color: 0xE5E7EB }); // gray-200
+                    blueprint.atoms.forEach(a => {
+                        const m = new THREE.Mesh(atomGeo, atomMat.clone());
+                        m.position.copy(a.pos);
+                        m.visible = false;
+                        a.mesh = m;
+                        moleculeGroup.add(m);
+                    });
+                    // add bonds
+                    blueprint.bonds.forEach(b => moleculeGroup.add(b.mesh));
+
+                    // Add a soft ghost point cloud to show final atoms (optional)
+                    // *** FIX: Made ghost more visible ***
+                    const ghostMat = new THREE.PointsMaterial({ size: 0.8, color: 0x4B5563, opacity: 0.2, transparent:true });
+                    const ghostGeo = new THREE.BufferGeometry();
+                    const pts = [];
+                    blueprint.atoms.forEach(a => pts.push(a.pos.x, a.pos.y, a.pos.z));
+                    ghostGeo.setAttribute('position', new THREE.Float32BufferAttribute(pts, 3));
+                    const ghostPoints = new THREE.Points(ghostGeo, ghostMat);
+                    moleculeGroup.add(ghostPoints);
+
+                    startBtn.disabled = false;
+                    logMessage('Simulation reset. Ready to build C60-like fullerene.');
+                }
+
+                function onResize() {
+                    if (!canvas) return; // Add check in case canvas is not found
+                    const parent = canvas.parentElement;
+                    if (!parent) return; // Add check for parent
+                    const w = parent.clientWidth;
+                    const h = parent.clientHeight;
+                    if (renderer && camera) { // Add checks for renderer and camera
+                        renderer.setSize(w, h);
+                        camera.aspect = w / h;
+                        camera.updateProjectionMatrix();
+                    }
+                }
+
+                canvas.addEventListener('mousedown', e => { isDragging = true; prevMouse.x = e.clientX; prevMouse.y = e.clientY; });
+                // Note: Changed to window listeners to track mouse outside canvas
+                window.addEventListener('mousemove', e => {
+                    if (!isDragging) return;
+                    const dx = e.clientX - prevMouse.x;
+                    const dy = e.clientY - prevMouse.y;
+                    if (moleculeGroup) { // Add check for moleculeGroup
+                        moleculeGroup.rotation.y += dx * 0.01;
+                        moleculeGroup.rotation.x += dy * 0.01;
+                    }
+                    prevMouse.x = e.clientX; prevMouse.y = e.clientY;
+                });
+                window.addEventListener('mouseup', () => { isDragging = false; });
+
+                function runNextStep() {
+                    if (currentStep >= blueprint.atoms.length) {
+                        isBuilding = false;
+                        nanobot.targetPos = new THREE.Vector3(30,30,30);
+                        logMessage('Assembly Complete: C60-like structure built.');
+                        startBtn.disabled = false;
+                        return;
+                    }
+
+                    const atom = blueprint.atoms[currentStep];
+                    nanobot.targetPos = atom.pos.clone().add(new THREE.Vector3(4,4,4));
+                    nanobot.placingAtom = atom;
+                    logMessage(`Placing Atom C${currentStep + 1}...`);
+                }
+
+                function updateNanobot() {
+                    if (!nanobot || !nanobot.targetPos) return; // Add check
+                    nanobot.position.lerp(nanobot.targetPos, 0.12);
+                    if (nanobot.position.distanceTo(nanobot.targetPos) < 1.2) {
+                        if (nanobot.placingAtom) {
+                            const placedAtom = nanobot.placingAtom;
+                            placedAtom.mesh.visible = true;
+                            // reveal bonds connected to this atom only if the other atom is already placed
+                            const atomIndex = blueprint.atoms.indexOf(placedAtom);
+                            blueprint.bonds.forEach(bond => {
+                                // *** FIX: Corrected typo atomZ -> atomIndex ***
+                                if (bond.from === atomIndex || bond.to === atomIndex) {
+                                    const otherIndex = (bond.from === atomIndex) ? bond.to : bond.from;
+                                    if (blueprint.atoms[otherIndex].mesh.visible) {
+                                        bond.mesh.visible = true;
+                                    }
+                                }
+                            });
+                            nanobot.placingAtom = null;
+                            currentStep++;
+                            setTimeout(runNextStep, 90);
+                        }
+                    }
+                }
+
+                function animate() {
+                    animId = requestAnimationFrame(animate);
+                    if (isBuilding) updateNanobot();
+                    if (moleculeGroup) moleculeGroup.rotation.y += 0.001; // slight slow rotation
+                    if (renderer && scene && camera) renderer.render(scene, camera); // Add checks
+                }
+
+                // --- initialize three.js scene ---
+                scene = new THREE.Scene();
+                camera = new THREE.PerspectiveCamera(60, canvas.parentElement.clientWidth / canvas.parentElement.clientHeight, 0.1, 1000);
+                camera.position.z = 80;
+
+                renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: true });
+                renderer.setPixelRatio(window.devicePixelRatio || 1);
+                
+                window.addEventListener('resize', onResize); // Kept the resize listener as in original
+
+                const ambient = new THREE.AmbientLight(0xffffff, 0.7);
+                scene.add(ambient);
+                const dir = new THREE.DirectionalLight(0xffffff, 0.9);
+                dir.position.set(1,1,1);
+                scene.add(dir);
+
+                resetSim();
+                onResize(); // Call once to set initial size
+                animate();
+
+                startBtn.addEventListener('click', () => {
+                    if (isBuilding) return;
+                    resetSim();
+                    isBuilding = true;
+                    startBtn.disabled = true;
+                    runNextStep();
+                });
+                resetBtn.addEventListener('click', resetSim);
+            }
+            
+            // --- ZONE 3: MEDICAL SIM ---
+            function initZone3Sim() {
+                const canvas = document.getElementById('medical-sim-canvas');
+                const log = document.getElementById('medical-sim-log');
+                const startBtn = document.getElementById('medical-sim-start');
+                const resetBtn = document.getElementById('medical-sim-reset');
+                const ctx = canvas.getContext('2d');
+                if (!canvas || !ctx) return; 
+
+                let particles = [];
+                let tumorCells = [];
+                let healthyCells = [];
+                let isSimRunning = false;
+                let animationFrameId = null;
+
+                function resizeCanvas() {
+                    if (!canvas) return;
+                    canvas.width = canvas.parentElement.clientWidth;
+                    canvas.height = canvas.parentElement.clientHeight;
+                }
+                resizeCanvas();
+                window.addEventListener('resize', resizeCanvas);
+
+                function logMessage(msg) {
+                    if (!log) return;
+                    log.innerHTML = `[${new Date().toLocaleTimeString()}] ${msg}<br>` + log.innerHTML;
+                    log.scrollTop = 0;
+                }
+
+                function drawCell(cell) {
+                    if (!ctx) return;
+                    ctx.beginPath();
+                    ctx.arc(cell.x, cell.y, cell.radius, 0, Math.PI * 2);
+                    ctx.fillStyle = cell.color;
+                    ctx.fill();
+                    ctx.strokeStyle = 'rgba(255,255,255,0.2)'; // Light stroke for dark bg
+                    ctx.stroke();
+                }
+
+                function drawParticle(p) {
+                    if (!ctx) return;
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                    ctx.fillStyle = p.color;
+                    ctx.fill();
+                }
+
+                function resetSim() {
+                    isSimRunning = false;
+                    if(startBtn) startBtn.disabled = false;
+                    particles = [];
+                    tumorCells = [];
+                    healthyCells = [];
+                    
+                    if (!canvas) return;
+                    for(let i = 0; i < 5; i++) {
+                        healthyCells.push({
+                            x: Math.random() * canvas.width / 2 + canvas.width / 2,
+                            y: 30 + (Math.random() - 0.5) * 20,
+                            radius: 15,
+                            color: 'rgba(96, 165, 250, 0.5)' // Brighter blue
+                        });
+                    }
+
+                    for(let i = 0; i < 8; i++) {
+                        tumorCells.push({
+                            x: Math.random() * canvas.width / 2 + canvas.width / 2,
+                            y: canvas.height - 40 + (Math.random() - 0.5) * 30,
+                            radius: 20,
+                            color: 'rgba(168, 85, 247, 0.8)' // Brighter purple
+                        });
+                    }
+                    
+                    for(let i = 0; i < 50; i++) {
+                        particles.push({
+                            x: Math.random() * canvas.width,
+                            y: Math.random() * canvas.height,
+                            vx: 1 + Math.random() * 0.5,
+                            vy: 0,
+                            radius: 5 + Math.random() * 2,
+                            color: 'rgba(239, 68, 68, 0.6)', // Brighter red
+                            type: 'rbc'
+                        });
+                    }
+                    logMessage("Simulation reset. Ready for injection.");
+                }
+
+                function update() {
+                    if (!canvas) return;
+                    particles.forEach(p => {
+                        p.x += p.vx;
+                        p.y += p.vy;
+
+                        if (p.type === 'rbc') {
+                            if (p.x > canvas.width + p.radius) {
+                                p.x = -p.radius;
+                            }
+                        }
+
+                        if (p.type === 'nanobot' && !p.bound) {
+                            let seeking = false;
+                            for (let cell of tumorCells) {
+                                const dx = cell.x - p.x;
+                                const dy = cell.y - p.y;
+                                const dist = Math.sqrt(dx * dx + dy * dy);
+
+                                if (dist < 100) { 
+                                    seeking = true;
+                                    p.vx = (dx / dist) * 1.5;
+                                    p.vy = (dy / dist) * 1.5;
+                                }
+
+                                if (dist < cell.radius + p.radius) {
+                                    p.bound = true;
+                                    p.vx = 0;
+                                    p.vy = 0;
+                                    p.x = cell.x + (Math.random() - 0.5) * cell.radius;
+                                    p.y = cell.y + (Math.random() - 0.5) * cell.radius;
+                                    logMessage("Nanobot bound to target cell.");
+                                    break;
+                                }
+                            }
+                            if (!seeking) {
+                                p.vx = 1.2 + (Math.random() - 0.5) * 0.2; 
+                                p.vy = (Math.random() - 0.5) * 0.5; 
+                            }
+                            
+                            if (p.x > canvas.width + p.radius) p.x = -p.radius;
+                            if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
+                        }
+                    });
+                }
+
+                function draw() {
+                    if (!ctx || !canvas) {
+                        if (animationFrameId) cancelAnimationFrame(animationFrameId);
+                        return;
+                    }
+                    
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    
+                    healthyCells.forEach(drawCell);
+                    tumorCells.forEach(drawCell);
+                    
+                    update();
+                    
+                    particles.forEach(drawParticle);
+                    
+                    animationFrameId = requestAnimationFrame(draw);
+                }
+
+                if (startBtn) {
+                    startBtn.addEventListener('click', () => {
+                        if (isSimRunning || !canvas) return;
+                        isSimRunning = true;
+                        startBtn.disabled = true;
+                        logMessage("Injecting nanobot swarm...");
+                        
+                        for (let i = 0; i < 40; i++) {
+                            particles.push({
+                                x: 0,
+                                y: Math.random() * canvas.height,
+                                vx: 1.2,
+                                vy: (Math.random() - 0.5) * 0.5,
+                                radius: 3,
+                                color: 'rgba(34, 197, 94, 1)', // Bright green
+                                type: 'nanobot',
+                                bound: false
+                            });
+                        }
+                    });
+                }
+                
+                if (resetBtn) resetBtn.addEventListener('click', resetSim);
+
+                resetSim();
+                draw();
+            }
+
+            function initZone3Chart() {
+                const ctx = document.getElementById('medical-chart').getContext('2d');
+                if (medicalChart) medicalChart.destroy();
+                medicalChart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Conventional Chemo', 'Targeted Nanobot Delivery'],
+                        datasets: [{
+                            label: 'Drug Reaching Target Cells (%)',
+                            data: [5, 95],
+                            backgroundColor: [
+                                'rgba(239, 68, 68, 0.7)',
+                                'rgba(22, 163, 74, 0.7)'
+                            ],
+                            borderColor: [
+                                'rgba(239, 68, 68, 1)',
+                                'rgba(22, 163, 74, 1)'
+                            ],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        ...globalChartOptions,
+                        indexAxis: 'y',
+                        scales: {
+                            x: {
+                                ...globalChartOptions.scales.x,
+                                ticks: {
+                                    ...globalChartOptions.scales.x.ticks,
+                                    callback: function(value) { return value + '%' }
+                                },
+                                beginAtZero: true,
+                                max: 100
+                            },
+                            y: {
+                                ...globalChartOptions.scales.y
+                            }
+                        },
+                        plugins: {
+                            ...globalChartOptions.plugins,
+                            title: {
+                                display: false,
+                            },
+                            legend: {
+                                display: false
+                            }
+                        }
+                    }
+                });
+            }
+
+            // --- ZONE 4: DNA ORIGAMI SIM (MODIFIED FOR CAR) ---
+            function initZone4Sim() {
+                const canvas = document.getElementById('dna-origami-canvas');
+                const log = document.getElementById('dna-sim-log');
+                const startBtn = document.getElementById('dna-sim-start');
+                const resetBtn = document.getElementById('dna-sim-reset');
+                const payloadControls = document.getElementById('payload-controls');
+                if (!canvas) return;
+                
+                const ctx = canvas.getContext('2d');
+                let animationFrameId = null;
+                let scaffold = [];
+                let staples = [];
+                let payloads = [];
+                let isFolding = false;
+                let isFolded = false;
+                
+                let targetPoints = [];
+                let payloadTargets = {};
+
+                // Helper function to get points on a line
+                function pointsOnLine(x1, y1, x2, y2, num) {
+                    const pts = [];
+                    for (let i = 0; i < num; i++) {
+                        const t = (num === 1) ? 0.5 : i / (num - 1);
+                        pts.push({
+                            x: x1 + (x2 - x1) * t,
+                            y: y1 + (y2 - y1) * t
+                        });
+                    }
+                    return pts;
+                }
+
+                // Helper function to get points on a circle
+                function pointsOnCircle(cx, cy, r, num) {
+                    const pts = [];
+                    for (let i = 0; i < num; i++) {
+                        const angle = (i / num) * Math.PI * 2;
+                        pts.push({
+                            x: cx + Math.cos(angle) * r,
+                            y: cy + Math.sin(angle) * r
+                        });
+                    }
+                    return pts;
+                }
+
+                function resizeCanvas() {
+                    if (!canvas) return;
+                    canvas.width = canvas.parentElement.clientWidth;
+                    canvas.height = canvas.parentElement.clientHeight;
+                    
+                    const cX = canvas.width / 2;
+                    const cY = canvas.height / 2;
+                    
+                    // --- Car Shape Definitions ---
+                    const w = canvas.width * 0.3; // half-width of body
+                    const h = canvas.height * 0.15; // body height
+                    const wr = canvas.height * 0.1; // wheel radius
+                    const ch = canvas.height * 0.15; // cabin height
+                    const cwo = w * 0.2; // cabin window angle offset
+                    const cwh = w * 0.7; // cabin half-width
+                    
+                    // Center the car vertically
+                    const bodyBottomY = cY + h * 0.5;
+                    const bodyTopY = cY - h * 0.5;
+                    const wheelBaseY = bodyBottomY + wr * 0.8; // Wheels slightly below body
+                    const wheel1X = cX - w * 0.6;
+                    const wheel2X = cX + w * 0.6;
+
+                    const carShape = {
+                        // Body (rectangle)
+                        body: [
+                            ...pointsOnLine(cX - w, bodyBottomY, cX + w, bodyBottomY, 20), // Bottom
+                            ...pointsOnLine(cX + w, bodyBottomY, cX + w, bodyTopY, 10), // Right
+                            ...pointsOnLine(cX + w, bodyTopY, cX - w, bodyTopY, 20), // Top
+                            ...pointsOnLine(cX - w, bodyTopY, cX - w, bodyBottomY, 10)  // Left
+                        ],
+                        // Cabin (trapezoid on top of body)
+                        cabin: [
+                            // ...pointsOnLine(cX - cwh, bodyTopY, cX + cwh, bodyTopY, 15), // Base (already on body)
+                            ...pointsOnLine(cX + cwh, bodyTopY, cX + cwh - cwo, bodyTopY - ch, 8), // Back window
+                            ...pointsOnLine(cX + cwh - cwo, bodyTopY - ch, cX - cwh + cwo, bodyTopY - ch, 12), // Roof
+                            ...pointsOnLine(cX - cwh + cwo, bodyTopY - ch, cX - cwh, bodyTopY, 8)  // Front window
+                        ],
+                        // Wheels (circles)
+                        wheel1: pointsOnCircle(wheel1X, wheelBaseY, wr, 15),
+                        wheel2: pointsOnCircle(wheel2X, wheelBaseY, wr, 15)
+                    };
+                    
+                    // Combine all points into one array for the scaffold
+                    targetPoints = [...carShape.body, ...carShape.cabin, ...carShape.wheel1, ...carShape.wheel2];
+                    
+                    // Update payload targets to be the center of the new shapes
+                    payloadTargets = {
+                        'payload-1': { x: wheel1X, y: wheelBaseY, color: 'rgba(250, 204, 21, 1)', radius: 6 }, // Yellow wheel 1
+                        'payload-2': { x: wheel2X, y: wheelBaseY, color: 'rgba(250, 204, 21, 1)', radius: 6 }, // Yellow wheel 2
+                        'payload-3': { x: cX + w * 0.3, y: bodyTopY + h * 0.2, color: 'rgba(74, 222, 128, 1)', radius: 8 } // Green cargo in truck bed
+                    };
+
+                    resetSim();
+                }
+
+                function logMessage(msg) {
+                    if (!log) return;
+                    log.innerHTML = `[${new Date().toLocaleTimeString()}] ${msg}<br>` + log.innerHTML;
+                    log.scrollTop = 0;
+                }
+
+                function resetSim() {
+                    if (animationFrameId) cancelAnimationFrame(animationFrameId);
+                    animationFrameId = null;
+                    isFolding = false;
+                    isFolded = false;
+                    scaffold = [];
+                    staples = [];
+                    payloads = [];
+                    if(payloadControls) payloadControls.classList.add('hidden');
+                    
+                    for (let i = 0; i < targetPoints.length; i++) {
+                        scaffold.push({
+                            x: 50 + Math.sin(i * 0.5) * 20 + Math.random() * 10,
+                            y: 20 + i * (canvas.height - 40) / targetPoints.length,
+                            targetX: targetPoints[i].x,
+                            targetY: targetPoints[i].y
+                        });
+                    }
+                    
+                    if(startBtn) startBtn.disabled = false;
+                    logMessage("Simulation reset. Scaffold strand is un-folded.");
+                    draw();
+                }
+
+                function startSim() {
+                    if (isFolding || isFolded) return;
+                    isFolding = true;
+                    if(startBtn) startBtn.disabled = true;
+                    staples = [];
+                    
+                    for (let i = 0; i < targetPoints.length; i++) {
+                        staples.push({
+                            x: Math.random() * canvas.width,
+                            y: Math.random() * canvas.height,
+                            targetX: targetPoints[i].x,
+                            targetY: targetPoints[i].y,
+                            bound: false
+                        });
+                    }
+                    logMessage("Heating... Staples added to solution.");
+                    
+                    setTimeout(() => {
+                        logMessage("Cooling... Self-assembly process initiated.");
+                        if (!animationFrameId) draw();
+                    }, 1000);
+                }
+                
+                function attachPayload(payloadId) {
+                    if (!isFolded) {
+                        logMessage("Error: Must complete self-assembly before attaching payload.");
+                        return;
+                    }
+                    const target = payloadTargets[payloadId];
+                    if (!target) return;
+                    
+                    payloads.push({
+                        x: 20, y: 20,
+                        targetX: target.x,
+                        targetY: target.y,
+                        color: target.color,
+                        radius: target.radius,
+                        bound: false
+                    });
+                    logMessage(`Dispatching payload to address: ${payloadId}...`);
+                    if (!animationFrameId) draw();
+                }
+
+                function draw() {
+                    if (!ctx) return;
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    
+                    // Draw the single scaffold strand
+                    ctx.beginPath();
+                    if (scaffold.length > 0) {
+                         ctx.moveTo(scaffold[0].x, scaffold[0].y);
+                        for (let i = 1; i < scaffold.length; i++) {
+                            ctx.lineTo(scaffold[i].x, scaffold[i].y);
+                        }
+                    }
+                    ctx.strokeStyle = "rgba(96, 165, 250, 0.6)"; // Light Blue
+                    ctx.lineWidth = 3;
+                    ctx.stroke();
+
+                    let allBound = true;
+                    
+                    if (isFolding) {
+                        staples.forEach((staple, i) => {
+                            if (!staple.bound) {
+                                allBound = false;
+                                const dx = staple.targetX - staple.x;
+                                const dy = staple.targetY - staple.y;
+                                const dist = Math.sqrt(dx * dx + dy * dy);
+                                
+                                if (dist > 3) {
+                                    staple.x += dx * 0.05;
+                                    staple.y += dy * 0.05;
+                                } else {
+                                    staple.bound = true;
+                                }
+                                
+                                ctx.beginPath();
+                                ctx.moveTo(staple.x - 3, staple.y);
+                                ctx.lineTo(staple.x + 3, staple.y);
+                                ctx.strokeStyle = "rgba(239, 68, 68, 0.8)"; // Red
+                                ctx.lineWidth = 2;
+                                ctx.stroke();
+                            } else {
+                                // Ensure scaffold point exists before accessing
+                                if (scaffold[i]) {
+                                    const scaffoldPoint = scaffold[i];
+                                    const s_dx = staple.targetX - scaffoldPoint.x;
+                                    const s_dy = staple.targetY - scaffoldPoint.y;
+                                    const s_dist = Math.sqrt(s_dx * s_dx + s_dy * s_dy);
+                                    if (s_dist > 1) {
+                                        allBound = false;
+                                        scaffoldPoint.x += s_dx * 0.1;
+                                        scaffoldPoint.y += s_dy * 0.1;
+                                    } else {
+                                        scaffoldPoint.x = staple.targetX;
+                                        scaffoldPoint.y = staple.targetY;
+                                    }
+                                    
+                                    ctx.beginPath();
+                                    ctx.moveTo(scaffoldPoint.x - 3, scaffoldPoint.y);
+                                    ctx.lineTo(scaffoldPoint.x + 3, scaffoldPoint.y);
+                                    ctx.strokeStyle = "rgba(34, 197, 94, 1)"; // Green
+                                    ctx.lineWidth = 2;
+                                    ctx.stroke();
+                                }
+                            }
+                        });
+                    }
+                    
+                    payloads.forEach(p => {
+                        if (!p.bound) {
+                            const dx = p.targetX - p.x;
+                            const dy = p.targetY - p.y;
+                            const dist = Math.sqrt(dx * dx + dy * dy);
+                            if (dist > 2) {
+                                p.x += dx * 0.1;
+                                p.y += dy * 0.1;
+                            } else {
+                                p.x = p.targetX;
+                                p.y = p.targetY;
+                                p.bound = true;
+                                logMessage("Payload attached to target address.");
+                            }
+                        }
+                        ctx.beginPath();
+                        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                        ctx.fillStyle = p.color;
+                        ctx.fill();
+                        ctx.strokeStyle = "white";
+                        ctx.lineWidth = 1;
+                        ctx.stroke();
+                    });
+                    
+                    if (isFolding && allBound) {
+                        isFolding = false;
+                        isFolded = true;
+                        logMessage("Folding complete. DNA Origami structure formed.");
+                        if (payloadControls) payloadControls.classList.remove('hidden');
+                    }
+
+                    if (isFolding || payloads.some(p => !p.bound) || !animationFrameId) {
+                        animationFrameId = requestAnimationFrame(draw);
+                    } else {
+                        animationFrameId = null;
+                    }
+                }
+                
+                if(startBtn) startBtn.addEventListener('click', startSim);
+                if(resetBtn) resetBtn.addEventListener('click', resizeCanvas); 
+                
+                const payload1Btn = document.getElementById('attach-payload-1');
+                const payload2Btn = document.getElementById('attach-payload-2');
+                const payload3Btn = document.getElementById('attach-payload-3');
+                
+                if(payload1Btn) payload1Btn.addEventListener('click', () => attachPayload('payload-1'));
+                if(payload2Btn) payload2Btn.addEventListener('click', () => attachPayload('payload-2'));
+                if(payload3Btn) payload3Btn.addEventListener('click', () => attachPayload('payload-3'));
+
+                resizeCanvas();
+            }
+
+            // --- ZONE 5: ENVIRONMENTAL (REBUILT) ---
+            const scenarioData = {
+                'water': {
+                    title: "Simulation: Water Purification",
+                    details: `<p><strong>Water Purification:</strong> Nanostructured membranes... can filter out contaminants... with exceptional efficiency.</p><p>This simulation shows nanobots of zero-valent iron (nZVI) chemically degrading organic pollutants and immobilizing heavy metals like lead in groundwater.</p>`,
+                    chartData: {
+                        labels: ['Organic Pollutants', 'Heavy Metals (Lead)', 'Viruses/Bacteria'],
+                        datasets: [{
+                            data: [50, 30, 20],
+                            backgroundColor: ['rgba(239, 68, 68, 0.8)', 'rgba(107, 114, 128, 0.8)', 'rgba(234, 179, 8, 0.8)']
+                        }]
+                    },
+                    bgColor: '#1e3a8a' // dark blue (Water)
+                },
+                'soil': {
+                    title: "Simulation: Soil Decontamination",
+                    details: `<p><strong>Soil Decontamination:</strong> Nanoparticles can be injected into contaminated soil to break down pesticides and petroleum residues or to stabilize heavy metals, reducing their toxicity...</p><p>Observe as nanoparticles are injected and flow through the soil matrix to neutralize pesticide residues.</p>`,
+                    chartData: {
+                        labels: ['Petroleum Residues', 'Pesticides', 'Heavy Metals'],
+                        datasets: [{
+                            data: [45, 35, 20],
+                            backgroundColor: ['rgba(107, 114, 128, 0.8)', 'rgba(168, 85, 247, 0.8)', 'rgba(239, 68, 68, 0.8)']
+                        }]
+                    },
+                    bgColor: '#3f280a' // Dark Brown (Soil)
+                },
+                'air': {
+                    title: "Simulation: Air Pollution Control",
+                    details: `<p><strong>Air Pollution Control:</strong> Nanocatalysts, such as titanium dioxide (TiO₂), can be used in filters or coatings to break down harmful airborne pollutants like nitrogen oxides (NOx) and volatile organic compounds (VOCs)...</p><p>Activate the light to see the TiO₂ filter neutralize pollutants.</p>`,
+                    chartData: {
+                        labels: ['Volatile Organic (VOCs)', 'Nitrogen Oxides (NOx)', 'Particulates'],
+                        datasets: [{
+                            data: [50, 40, 10],
+                            backgroundColor: ['rgba(249, 115, 22, 0.8)', 'rgba(239, 68, 68, 0.8)', 'rgba(107, 114, 128, 0.8)']
+                        }]
+                    },
+                    bgColor: '#1f2937' // gray-800 (Air)
+                }
+            };
+
+            let envSimState = {
+                canvas: null,
+                ctx: null,
+                animationFrameId: null,
+                currentScenario: 'water',
+                particles: [], // Will hold pollutants AND nanobots
+                staticElements: [], // Will hold soil particles or air filter
+                isActive: false,
+                bgColor: '#1e3a8a'
+            };
+
+            function initZone5() {
+                const subTabs = document.querySelectorAll('.env-tab-button');
+                envSimState.canvas = document.getElementById('env-sim-canvas');
+                if (envSimState.canvas) {
+                    envSimState.ctx = envSimState.canvas.getContext('2d');
+                }
+                
+                function resizeCanvas() {
+                    if (!envSimState.canvas) return;
+                    envSimState.canvas.width = envSimState.canvas.parentElement.clientWidth;
+                    envSimState.canvas.height = envSimState.canvas.parentElement.clientHeight;
+                    resetEnvSim();
+                }
+                window.addEventListener('resize', resizeCanvas);
+                
+                subTabs.forEach(tab => {
+                    tab.addEventListener('click', () => {
+                        const scenario = tab.dataset.scenario;
+                        subTabs.forEach(t => t.classList.remove('env-tab-active'));
+                        tab.classList.add('env-tab-active');
+                        updateEnvZone(scenario);
+                    });
+                });
+
+                document.getElementById('env-sim-reset').addEventListener('click', resetEnvSim);
+                document.getElementById('env-sim-btn-water').addEventListener('click', () => { 
+                    envSimState.isActive = true; 
+                    spawnNanobots(20, 'water');
+                });
+                document.getElementById('env-sim-btn-soil').addEventListener('click', () => { 
+                    envSimState.isActive = true;
+                    spawnNanobots(30, 'soil');
+                });
+                document.getElementById('env-sim-btn-air').addEventListener('click', () => { 
+                    envSimState.isActive = true; 
+                });
+
+                // Initialize first tab
+                subTabs[0].classList.add('env-tab-active');
+                updateEnvZone('water');
+                resizeCanvas();
+            }
+            
+            function updateEnvZone(scenario) {
+                envSimState.currentScenario = scenario;
+                const data = scenarioData[scenario];
+                
+                envSimState.bgColor = data.bgColor;
+                document.getElementById('env-details').innerHTML = data.details;
+                document.getElementById('env-sim-title').textContent = data.title;
+                
+                ['water', 'soil', 'air'].forEach(s => {
+                    const btn = document.getElementById(`env-sim-btn-${s}`);
+                    if (btn) btn.classList.toggle('hidden', s !== scenario);
+                });
+                
+                const chartCtx = document.getElementById('env-chart');
+                if (chartCtx) {
+                    const ctx = chartCtx.getContext('2d');
+                    if (envChart) envChart.destroy();
+                    envChart = new Chart(ctx, {
+                        type: 'pie',
+                        data: data.chartData,
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                ...globalChartOptions.plugins,
+                                title: { 
+                                    display: true, 
+                                    text: 'Contaminant Analysis', 
+                                    font: { size: 16, family: 'sans-serif', weight: '600' },
+                                    color: '#f3f4f6' // gray-100
+                                },
+                                legend: { 
+                                    position: 'bottom', 
+                                    labels: { ...globalChartOptions.plugins.legend.labels } 
+                                }
+                            }
+                        }
+                    });
+                }
+                
+                resetEnvSim();
+            }
+            
+            function spawnNanobots(count, type) {
+                 const { canvas, particles } = envSimState;
+                 if (!canvas) return;
+                 
+                 for (let i = 0; i < count; i++) {
+                     particles.push({
+                        x: (type === 'soil') ? Math.random() * canvas.width : Math.random() * 20,
+                        y: (type === 'soil') ? 0 : Math.random() * canvas.height,
+                        vx: (Math.random() - 0.5) * 2,
+                        vy: (type === 'soil') ? 0.5 + Math.random() * 0.5 : (Math.random() - 0.5) * 2,
+                        radius: 4,
+                        color: 'rgba(220, 220, 220, 0.9)', // White/Silver nanobot
+                        type: 'nanobot'
+                    });
+                 }
+            }
+
+            function resetEnvSim() {
+                envSimState.isActive = false;
+                envSimState.particles = [];
+                envSimState.staticElements = [];
+                const canvas = envSimState.canvas;
+                if (!canvas) return;
+
+                if (envSimState.currentScenario === 'water') {
+                    for (let i = 0; i < 60; i++) {
+                        envSimState.particles.push({
+                            x: Math.random() * canvas.width, y: Math.random() * canvas.height,
+                            vx: (Math.random() - 0.5) * 0.3, vy: (Math.random() - 0.5) * 0.3,
+                            radius: 3 + Math.random() * 2,
+                            color: 'rgba(239, 68, 68, 0.8)', // Red pollutant
+                            type: 'pollutant',
+                            isNeutralized: false
+                        });
+                    }
+                } else if (envSimState.currentScenario === 'soil') {
+                    for (let i = 0; i < 15; i++) {
+                        envSimState.staticElements.push({ // Soil particles
+                            x: Math.random() * canvas.width, y: (Math.random() * 0.7 + 0.3) * canvas.height, // Bottom 70%
+                            radius: 20 + Math.random() * 15,
+                            color: 'rgba(92, 64, 51, 0.7)' // Darker brown
+                        });
+                    }
+                    for (let i = 0; i < 50; i++) {
+                        envSimState.particles.push({ // Pesticides
+                            x: Math.random() * canvas.width, y: (Math.random() * 0.7 + 0.3) * canvas.height,
+                            radius: 4,
+                            color: 'rgba(168, 85, 247, 0.9)', // Purple
+                            type: 'pollutant',
+                            isNeutralized: false
+                        });
+                    }
+                } else if (envSimState.currentScenario === 'air') {
+                    envSimState.staticElements.push({ // Filter
+                        x: canvas.width * 0.7, y: 0, w: 8, h: canvas.height
+                    });
+                    for (let i = 0; i < 70; i++) {
+                        envSimState.particles.push({ // Air pollutants
+                            x: Math.random() * canvas.width * 0.7, y: Math.random() * canvas.height,
+                            vx: 0.5 + Math.random() * 0.5, vy: (Math.random() - 0.5) * 0.1,
+                            radius: 3 + Math.random() * 1,
+                            color: 'rgba(156, 163, 175, 0.7)', // gray-400
+                            type: 'pollutant',
+                            isNeutralized: false
+                        });
+                    }
+                }
+                
+                if (envSimState.animationFrameId) {
+                    cancelAnimationFrame(envSimState.animationFrameId);
+                    envSimState.animationFrameId = null;
+                }
+                drawEnvSim();
+            }
+            
+            function drawEnvSim() {
+                const { ctx, canvas, particles, staticElements, currentScenario, isActive, bgColor } = envSimState;
+                if (!ctx || !canvas) return;
+                
+                ctx.fillStyle = bgColor;
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                
+                if (currentScenario === 'soil') {
+                    ctx.fillStyle = '#694a28'; // Lighter sienna
+                    ctx.fillRect(0, 0, canvas.width, canvas.height * 0.3);
+                }
+
+                staticElements.forEach(el => {
+                    ctx.beginPath();
+                    if (currentScenario === 'soil') {
+                        ctx.arc(el.x, el.y, el.radius, 0, Math.PI * 2);
+                        ctx.fillStyle = el.color;
+                    } else if (currentScenario === 'air') {
+                        ctx.rect(el.x, el.y, el.w, el.h);
+                        ctx.fillStyle = isActive ? 'rgba(56, 189, 248, 0.7)' : 'rgba(75, 85, 99, 0.5)'; // sky-400 or Gray-600
+                        ctx.strokeStyle = isActive ? 'rgba(14, 165, 233, 1)' : 'rgba(55, 65, 81, 1)';
+                        ctx.setLineDash([5, 5]);
+                        ctx.stroke();
+                        ctx.setLineDash([]);
+                    }
+                    ctx.fill();
+                });
+
+                envSimState.particles = particles.filter(p => !p.isNeutralized);
+                
+                let nanobots = particles.filter(p => p.type === 'nanobot');
+                let pollutants = particles.filter(p => p.type === 'pollutant');
+                
+                if (isActive && (currentScenario === 'water' || currentScenario === 'soil')) {
+                    nanobots.forEach(n => {
+                        let closestPollutant = null;
+                        let minDist = Infinity;
+                        
+                        pollutants.forEach(p => {
+                            if (p.isNeutralized) return;
+                            const dx = p.x - n.x;
+                            const dy = p.y - n.y;
+                            const dist = dx * dx + dy * dy;
+                            if (dist < minDist) {
+                                minDist = dist;
+                                closestPollutant = p;
+                            }
+                        });
+
+                        if (closestPollutant) {
+                            if (minDist < (n.radius + closestPollutant.radius) ** 2) {
+                                closestPollutant.isNeutralized = true;
+                            } else {
+                                const dist = Math.sqrt(minDist);
+                                n.vx = (closestPollutant.x - n.x) / dist * 1.5;
+                                n.vy = (closestPollutant.y - n.y) / dist * 1.5;
+                            }
+                        } else {
+                            n.vx += (Math.random() - 0.5) * 0.2;
+                            n.vy += (Math.random() - 0.5) * 0.2;
+                            n.vx *= 0.95; n.vy *= 0.95;
+                        }
+                    });
+                }
+                
+                particles.forEach(p => {
+                    if (p.type === 'pollutant') {
+                        if (currentScenario === 'air') {
+                            p.x += p.vx;
+                            p.y += p.vy;
+                            if (staticElements.length > 0) {
+                                const filter = staticElements[0];
+                                if (isActive && p.x > filter.x && p.x < filter.x + filter.w) {
+                                    p.isNeutralized = true;
+                                }
+                            }
+                            if (p.x > canvas.width) p.x = 0;
+                            if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
+                        } else if (currentScenario === 'water') {
+                            p.x += p.vx;
+                            p.y += p.vy;
+                            if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
+                            if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
+                        }
+                    } else if (p.type === 'nanobot') {
+                        p.x += p.vx;
+                        p.y += p.vy;
+                        if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
+                        if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
+                        if (currentScenario === 'soil' && p.y < canvas.height * 0.3) {
+                             p.y = canvas.height * 0.3;
+                             p.vy *= -1;
+                        }
+                    }
+
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                    ctx.fillStyle = p.color;
+                    ctx.fill();
+                });
+
+                envSimState.animationFrameId = requestAnimationFrame(drawEnvSim);
+            }
+
+
+            // --- INITIALIZE ---
+            initTabNavigation();
+            
+            const medicalChartCanvas = document.getElementById('medical-chart');
+            if (medicalChartCanvas) {
+                initZone3Chart(); // Initialize this chart once, as it's static
+            }
+            
+            // --- UPDATED to new active classes ---
+            tabs.forEach(t => t.classList.remove('bg-cyan-400', 'text-black', 'font-bold', 'shadow-lg', 'shadow-cyan-500/30'));
+            tabs[0].classList.add('bg-cyan-400', 'text-black', 'font-bold', 'shadow-lg', 'shadow-cyan-500/30');
+            
+            zones.forEach(zone => zone.classList.add('hidden'));
+            document.getElementById('zone1').classList.remove('hidden');
+            
+            initZone1Sim();
+            zone1Initialized = true;
+
+        });
+    </script>
+</body>
+</html>
